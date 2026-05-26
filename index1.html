@@ -1,16 +1,26 @@
 <!DOCTYPE html>
 <!--
-GitHub 업로드 구조:
-26jp/
-├── index.html
-└── image/
-    └── menu-example.png
+사진 주소는 <head> 상단의 IMAGE_URLS에서만 바꾸면 됩니다.
 -->
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Menu Lens Korea - Prototype with Image</title>
+  <!-- 사진 주소 설정: 아래 주소만 바꾸면 화면 전체에 반영됩니다. -->
+  <script>
+    const IMAGE_URLS = {
+      // 메인 화면 사진
+      main: "https://choi586.github.io/2026/image/그림1.png",
+
+      // 음식 카드 및 상세 화면 사진: 주소를 넣으면 이모지 대신 사진이 보입니다.
+      kimchi: "",
+      bibim: "",
+      doenjang: "",
+      jeyuk: ""
+    };
+  </script>
+
   <style>
     :root {
       --bg: #fff8f1;
@@ -485,6 +495,23 @@ GitHub 업로드 구조:
       overflow: hidden;
     }
 
+
+    .food-img img,
+    .detail-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .food-img img {
+      border-radius: 18px;
+    }
+
+    .detail-photo img {
+      border-radius: 24px;
+    }
+
     .food-info {
       min-width: 0;
     }
@@ -743,7 +770,7 @@ GitHub 업로드 구조:
   </style>
 </head>
 <body>
-  <div class="desktop-note"></div>
+  <div class="desktop-note">発表用プロトタイプ：スマートフォン画面を想定したモバイルWebアプリです。</div>
 
   <main class="app-shell">
     <header class="topbar">
@@ -762,7 +789,7 @@ GitHub 업로드 구조:
       </p>
 
       <div class="hero-visual">
-        <img src="https://choi586.github.io/2026/image/img1.png" alt="韓国語だけで書かれたメニュー表の例" class="menu-example-img">
+        <img id="mainImage" src="" alt="韓国語だけで書かれたメニュー表の例" class="menu-example-img">
         <div class="translation-bubble">
           <strong>AI変換例</strong>
           韓国語メニューを写真つき日本語メニューに変換
@@ -882,7 +909,7 @@ GitHub 업로드 구조:
 
       <div class="menu-list">
         <article class="food-card">
-          <div class="food-img">🍲</div>
+          <div class="food-img" data-food-img="kimchi">🍲</div>
           <div class="food-info">
             <h3>キムチチゲ</h3>
             <div class="ko-name">김치찌개</div>
@@ -898,7 +925,7 @@ GitHub 업로드 구조:
         </article>
 
         <article class="food-card">
-          <div class="food-img">🥗</div>
+          <div class="food-img" data-food-img="bibim">🥗</div>
           <div class="food-info">
             <h3>ビビンバ</h3>
             <div class="ko-name">비빔밥</div>
@@ -914,7 +941,7 @@ GitHub 업로드 구조:
         </article>
 
         <article class="food-card">
-          <div class="food-img">🥘</div>
+          <div class="food-img" data-food-img="doenjang">🥘</div>
           <div class="food-info">
             <h3>テンジャンチゲ</h3>
             <div class="ko-name">된장찌개</div>
@@ -930,7 +957,7 @@ GitHub 업로드 구조:
         </article>
 
         <article class="food-card">
-          <div class="food-img">🍖</div>
+          <div class="food-img" data-food-img="jeyuk">🍖</div>
           <div class="food-info">
             <h3>チェユクポックム</h3>
             <div class="ko-name">제육볶음</div>
@@ -949,7 +976,7 @@ GitHub 업로드 구조:
 
     <section id="detail">
       <div class="detail-hero">
-        <div class="detail-photo" id="detailEmoji">🍲</div>
+        <div class="detail-photo" id="detailPhoto">🍲</div>
         <div class="detail-meta">
           <div>
             <h2 id="detailName">キムチチゲ</h2>
@@ -1069,6 +1096,32 @@ GitHub 업로드 구조:
       }
     };
 
+
+    function renderImageOrEmoji(element, imageUrl, emoji, altText) {
+      if (!element) return;
+
+      if (imageUrl && imageUrl.trim() !== "") {
+        element.innerHTML = `<img src="${imageUrl}" alt="${altText}">`;
+      } else {
+        element.textContent = emoji;
+      }
+    }
+
+    function applyImageUrls() {
+      const mainImage = document.getElementById("mainImage");
+      if (mainImage) {
+        mainImage.src = IMAGE_URLS.main;
+      }
+
+      document.querySelectorAll("[data-food-img]").forEach(el => {
+        const key = el.dataset.foodImg;
+        const data = menuData[key];
+        if (data) {
+          renderImageOrEmoji(el, IMAGE_URLS[key], data.emoji, data.name);
+        }
+      });
+    }
+
     function showScreen(id) {
       screens.forEach(screenId => {
         document.getElementById(screenId).classList.toggle("active", screenId === id);
@@ -1095,7 +1148,7 @@ GitHub 업로드 구조:
 
     function openDetail(key) {
       const data = menuData[key];
-      document.getElementById("detailEmoji").textContent = data.emoji;
+      renderImageOrEmoji(document.getElementById("detailPhoto"), IMAGE_URLS[key], data.emoji, data.name);
       document.getElementById("detailName").textContent = data.name;
       document.getElementById("detailKo").textContent = data.ko;
       document.getElementById("detailPrice").textContent = data.price;
@@ -1108,6 +1161,8 @@ GitHub 업로드 구조:
 
       showScreen("detail");
     }
+
+    applyImageUrls();
 
     document.querySelectorAll(".chip").forEach(chip => {
       chip.addEventListener("click", () => {
